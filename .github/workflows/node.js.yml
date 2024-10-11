@@ -43,14 +43,17 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Set project name
+      run: echo "PROJECT_NAME=$(jq -r '.name' package.json)" >> $GITHUB_ENV
     - run: echo "@infragistics:registry=https://packages.infragistics.com/npm/js-licensed/" >> ~/.npmrc
     - run: echo "//packages.infragistics.com/npm/js-licensed/:_auth=${{ secrets.NPM_AUTH_TOKEN }}" >> ~/.npmrc
     - run: echo "//packages.infragistics.com/npm/js-licensed/:always-auth=true" >> ~/.npmrc
     - run: npm i
-    - run: npm run build
+    - name: Build project with dynamic base-href
+      run: npm run build -- --base-href "https://${{ github.actor }}.github.io/${{ github.event.repository.name }}/"
     - name: github-pages
       uses: peaceiris/actions-gh-pages@v3
       if: github.ref == 'refs/heads/main'
       with:
         github_token: ${{ secrets.MY_GITHUB_TOKEN }}
-        publish_dir: ./dist/health-vault
+        publish_dir: ./dist/${{ env.PROJECT_NAME }}
